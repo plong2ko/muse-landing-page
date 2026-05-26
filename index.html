@@ -299,13 +299,20 @@ body{
   background:rgba(251,247,241,.04);
   border:1px solid rgba(251,247,241,.08);
   border-radius:20px;
-  transition:all .4s ease;
-  cursor:default;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1), background .3s ease, border-color .3s ease, box-shadow .3s ease;
+  cursor:pointer;
 }
 .pillar:hover{
-  background:rgba(251,247,241,.07);
-  border-color:rgba(232,184,110,.3);
-  transform:translateY(-4px);
+  background:rgba(251,247,241,.1);
+  border-color:rgba(232,184,110,.6);
+  transform:translateY(-10px) scale(1.03);
+  box-shadow:0 20px 50px rgba(232,184,110,.18), 0 0 0 1px rgba(232,184,110,.4), inset 0 1px 0 rgba(232,184,110,.15);
+}
+.pillar:hover .pillar-num{
+  color:#F5C77A;
+}
+.pillar:hover .pillar-title{
+  color:#F5C77A;
 }
 .pillar-num{
   font-family:'Fraunces',serif;
@@ -357,9 +364,8 @@ body{
   width:100%;
   height:100%;
   object-fit:cover;
-  transition:transform 1s ease;
+  object-position:center center;
 }
-.founder-photo:hover img{transform:scale(1.03)}
 .founder-stats{
   display:flex;
   gap:40px;
@@ -710,6 +716,7 @@ body{
             <div class="stat-label">Students Reached</div>
           </div>
         </div>
+        <p style="font-size:15px;color:#3D362C;margin-top:32px">Email Michael directly: <a href="mailto:michael@museprograms.com" style="color:#B8732D;font-weight:500">michael@museprograms.com</a><br>Call Michael: <a href="tel:+12013440362" style="color:#B8732D;font-weight:500">(201) 344-0362</a></p>
       </div>
     </div>
   </div>
@@ -828,32 +835,51 @@ const observer = new IntersectionObserver(entries => {
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
 // ─── Form submission ──────────────────────────────────────
+// Posts to GHL Inbound Webhook (MUSE Landing Page Lead Capture workflow)
+const GHL_WEBHOOK_URL = 'https://services.leadconnectorhq.com/hooks/YtbPhzlOK5ZOjZwdFL4G/webhook-trigger/ee4a87ef-4ef2-4907-a98e-1e4b05e16a84';
+
 async function handleSubmit(e){
   e.preventDefault();
   const form = e.target;
+  const submitBtn = form.querySelector('button[type="submit"]');
+  const originalBtnText = submitBtn ? submitBtn.textContent : '';
+
+  // Disable submit button while sending to prevent double-submission
+  if(submitBtn){ submitBtn.disabled = true; submitBtn.textContent = 'Sending...'; }
+
+  // Split full name into first/last so GHL contact fields map cleanly
+  const fullName = (form.name.value || '').trim();
+  const firstName = fullName.split(' ')[0] || '';
+  const lastName = fullName.split(' ').slice(1).join(' ') || '';
+
   const data = {
-    name: form.name.value,
+    name: fullName,
+    first_name: firstName,
+    last_name: lastName,
     school: form.school.value,
     email: form.email.value,
     phone: form.phone.value,
     message: form.message.value,
-    source: 'Landing Page'
+    source: 'MUSE Landing Page'
   };
 
-  // Submit to API (wire up to GHL later)
+  let submitOk = false;
   try {
-    await fetch('/api/landing-submit', {
+    const res = await fetch(GHL_WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
+    submitOk = res.ok;
+    if(!res.ok) console.warn('GHL webhook returned non-OK status:', res.status);
   } catch(err) {
     console.warn('Submit error:', err);
   }
 
-  // Show success regardless (so user gets feedback)
+  // Show success message (form data was either submitted or attempted)
   document.getElementById('form-success').classList.add('show');
   form.reset();
+  if(submitBtn){ submitBtn.disabled = false; submitBtn.textContent = originalBtnText; }
   setTimeout(() => {
     document.getElementById('form-success').classList.remove('show');
   }, 5000);
