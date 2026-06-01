@@ -748,7 +748,7 @@ body{
         <h3 class="serif">Bring MUSE to <em>your school</em>.</h3>
         <p>Tell us a little about your school or program. Michael will personally reach out within 48 hours to schedule a conversation about whether MUSE is the right fit.</p>
 
-        <a href="https://calendly.com/musemusicenrichment" target="_blank" class="book-call">
+        <a href="https://calendly.com/michael-museprograms/20min" target="_blank" class="book-call">
           Or Book a Call Directly
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
         </a>
@@ -835,7 +835,6 @@ const observer = new IntersectionObserver(entries => {
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
 // ─── Form submission ──────────────────────────────────────
-// Posts to GHL Inbound Webhook (MUSE Landing Page Lead Capture workflow)
 const GHL_WEBHOOK_URL = 'https://services.leadconnectorhq.com/hooks/YtbPhzlOK5ZOjZwdFL4G/webhook-trigger/ee4a87ef-4ef2-4907-a98e-1e4b05e16a84';
 
 async function handleSubmit(e){
@@ -844,10 +843,8 @@ async function handleSubmit(e){
   const submitBtn = form.querySelector('button[type="submit"]');
   const originalBtnText = submitBtn ? submitBtn.textContent : '';
 
-  // Disable submit button while sending to prevent double-submission
   if(submitBtn){ submitBtn.disabled = true; submitBtn.textContent = 'Sending...'; }
 
-  // Split full name into first/last so GHL contact fields map cleanly
   const fullName = (form.name.value || '').trim();
   const firstName = fullName.split(' ')[0] || '';
   const lastName = fullName.split(' ').slice(1).join(' ') || '';
@@ -876,7 +873,6 @@ async function handleSubmit(e){
     console.warn('Submit error:', err);
   }
 
-  // Show success message (form data was either submitted or attempted)
   document.getElementById('form-success').classList.add('show');
   form.reset();
   if(submitBtn){ submitBtn.disabled = false; submitBtn.textContent = originalBtnText; }
